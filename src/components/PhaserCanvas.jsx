@@ -2,25 +2,32 @@ import React, { useEffect } from 'react';
 import { useState } from 'react';
 import Phaser from 'phaser';
 import BulletWorker from './bulletWorker.js?worker';
+import anguloWorker from './anguloWorker.js?worker';
 
 function PhaserCanvas() {
   const stylesContent = {};
   const [reiniciar, setReiniciar] = useState(false);
   const [balasRestantes, setBalasRestantes] = useState();
+  const [angulo, setAngulo] = useState(90);
   let pistola;
   let oso, oso2, oso3, oso4, oso5, oso6;
   let maxClicks = 6; // Límite de clics totales (balas)
   let clickCount = 0;
   let worker;
+  let ww;
 
 
   useEffect(() => {
     worker = new BulletWorker();
+    ww= new anguloWorker();
 
     // Recibir el número de balas desde el Web Worker
     worker.onmessage = function (event) {
       setBalasRestantes(event.data);
     };
+    ww.onmessage = function(event){
+      pistola.setAngle(event.data); 
+    }
     // Configuración del juego Phaser
     const config = {
       type: Phaser.AUTO,
@@ -178,15 +185,8 @@ function PhaserCanvas() {
       pistola.setCollideWorldBounds(true);
       pistola.angle += 90;
 /////////////////////
-      let totalPx = 1200;
-      let resultado;
       this.input.on('pointermove', (pointer) => {
-        const mouseX = pointer.x; 
-        //sacar angulo---
-        resultado= ((mouseX*100)/totalPx);
-        resultado = ((resultado*90)/100);
-        resultado=resultado+45;
-        pistola.setAngle(resultado);
+        ww.postMessage({action: 'calculate', x: pointer.x})
       });
 ////////////////////////////////////
       // Añadir evento de clic en el canvas
@@ -260,6 +260,7 @@ function PhaserCanvas() {
       if (game) {
         game.destroy(true);
         worker.terminate();
+        ww.terminate();
       }
     };
   }, [reiniciar]);
@@ -268,6 +269,7 @@ function PhaserCanvas() {
      <button id='reiniciar' onClick={() => {
         setReiniciar(!reiniciar);
         worker.postMessage({ action: 'reset' });
+        ww.postMessage({action: 'reset'});
       }}>
         Reiniciar
       </button>
