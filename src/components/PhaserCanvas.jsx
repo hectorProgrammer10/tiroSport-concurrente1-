@@ -187,6 +187,7 @@ function PhaserCanvas() {
 /////////////////////
       this.input.on('pointermove', (pointer) => {
         ww.postMessage({action: 'calculate', x: pointer.x})
+
       });
 ////////////////////////////////////
       // Añadir evento de clic en el canvas
