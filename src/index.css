@@ -1,0 +1,19 @@
+body{
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+#phaser-container{
+  border: 4px solid rgba(50, 50, 50, 0.4);
+  cursor : url('/src/assets/mira.svg'), auto;
+  
+}
+
+@font-face {
+  font-family: CustomFont;
+  src: url('./Custom-Font.ttf');
+}
