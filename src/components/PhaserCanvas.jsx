@@ -1,15 +1,26 @@
 import React, { useEffect } from 'react';
+import { useState } from 'react';
 import Phaser from 'phaser';
+import BulletWorker from './bulletWorker.js?worker';
 
 function PhaserCanvas() {
   const stylesContent = {};
+  const [reiniciar, setReiniciar] = useState(false);
+  const [balasRestantes, setBalasRestantes] = useState();
   let pistola;
   let oso, oso2, oso3, oso4, oso5, oso6;
-  let maxClicks = 7; // Límite de clics totales (balas)
+  let maxClicks = 6; // Límite de clics totales (balas)
   let clickCount = 0;
+  let worker;
+
 
   useEffect(() => {
-    
+    worker = new BulletWorker();
+
+    // Recibir el número de balas desde el Web Worker
+    worker.onmessage = function (event) {
+      setBalasRestantes(event.data);
+    };
     // Configuración del juego Phaser
     const config = {
       type: Phaser.AUTO,
@@ -38,9 +49,9 @@ function PhaserCanvas() {
       // Cargar las imágenes que vas a utilizar
       this.load.image('oso', '/oso.svg');
       this.load.image('oso2', '/oso2.svg');
-      this.load.image('oso3', '/oso3.svg');
+      this.load.image('oso3', '/oso5.svg');
       this.load.image('oso4', '/oso4.svg');
-      this.load.image('oso5', '/oso5.svg');
+      this.load.image('oso5', '/oso3.svg');
       this.load.image('oso6', '/oso6.svg');
       this.load.image('pistola', '/pistola.svg');
       this.load.image('pistolaN', '/pistolaN.svg');
@@ -93,44 +104,56 @@ function PhaserCanvas() {
 
       // Evento de clic en cada oso
       oso.on('pointerdown', () => {
-        pistola = this.physics.add.image(600, 900, 'pistolaN').setInteractive();
-        pistola.setScale(0.6);
-        pistola.body.allowGravity = false;
-        pistola.setCollideWorldBounds(true);
-        pistola.angle += 90;
+        if(clickCount<maxClicks){
+          pistola = this.physics.add.image(600, 900, 'pistolaN').setInteractive();
+          pistola.setScale(0.6);
+          pistola.body.allowGravity = false;
+          pistola.setCollideWorldBounds(true);
+          pistola.angle += 90;
+        }
 
         handleOsoClick(oso);
       });
       oso2.on('pointerdown', () => {
+        if(clickCount<maxClicks){
         graphics4=this.add.graphics();
         graphics4.fillStyle(0x2FB874, 1);
         graphics4.fillRect(0, 310, 1200, 190);
         this.add.text(510, 400, 'Tiro Sport', { fontFamily: 'CustomFont', fontSize: '50px', fill: 'rgba(0,0,0,0.6)' });
 
+        }
         handleOsoClick(oso2);
       });
       oso3.on('pointerdown', () => {
-        this.cameras.main.setBackgroundColor('#125EA9');
+        if(clickCount< maxClicks){
+          this.add.text(510, 400, 'Tiro Sport', { fontFamily: 'CustomFont', fontSize: '50px', fill: '#193F54' });
+        }
+        
 
         handleOsoClick(oso3);
       });
       oso4.on('pointerdown', () => {
-        graphics2 = this.add.graphics();
+        if(clickCount<maxClicks){
+          graphics2 = this.add.graphics();
         graphics2.fillStyle(0xDA7771, 1);
         graphics2.fillRect(0, 150, 1200, 10);
         graphics3 = this.add.graphics();
         graphics3.fillStyle(0xDA7771, 1);
         graphics3.fillRect(0, 300, 1200, 10);
+        }
 
         handleOsoClick(oso4);
       });
       oso5.on('pointerdown', () => {
-        this.add.text(510, 400, 'Tiro Sport', { fontFamily: 'CustomFont', fontSize: '50px', fill: '#193F54' });
+        if(clickCount<maxClicks){
+          this.cameras.main.setBackgroundColor('#125EA9');
+        }
 
         handleOsoClick(oso5);
       });
       oso6.on('pointerdown', () => {
-        graphics5 = this.add.graphics(); // piso
+        if(clickCount<maxClicks){
+          graphics5 = this.add.graphics(); // piso
         graphics5.fillStyle(0xCCC84A, 1);
         graphics5.fillRect(0, 504, 1200, 500);
         pistola = this.physics.add.image(600, 900, 'pistola').setInteractive();
@@ -138,6 +161,7 @@ function PhaserCanvas() {
         pistola.body.allowGravity = false;
         pistola.setCollideWorldBounds(true);
         pistola.angle += 90;
+        }
 
         handleOsoClick(oso6);
       });
@@ -153,18 +177,31 @@ function PhaserCanvas() {
       pistola.body.allowGravity = false;
       pistola.setCollideWorldBounds(true);
       pistola.angle += 90;
-
+/////////////////////
+      let totalPx = 1200;
+      let resultado;
+      this.input.on('pointermove', (pointer) => {
+        const mouseX = pointer.x; 
+        //sacar angulo---
+        resultado= ((mouseX*100)/totalPx);
+        resultado = ((resultado*90)/100);
+        resultado=resultado+45;
+        pistola.setAngle(resultado);
+      });
+////////////////////////////////////
       // Añadir evento de clic en el canvas
       this.input.on('pointerdown', () => {
-        clickCount++;
-        if(clickCount >= maxClicks){
-          alert("se acabaron las balas")
+        if (clickCount >= maxClicks) {
+          alert("Se acabaron las balas");
           return;
-        }
-        else{
+        } else {
+          // Comunicar al Web Worker que se ha disparado una bala
+          clickCount++;
+          worker.postMessage({ action: 'shoot' });
           animatePistola(this);
         }
       });
+    
       
 
       // Dibujar líneas gráficas
@@ -191,7 +228,6 @@ function PhaserCanvas() {
 
 
     function handleOsoClick(gameObject) {
-      console.log(gameObject)
       if (clickCount >= maxClicks) {
         console.log('No quedan balas para destruir osos');
         return;
@@ -223,11 +259,22 @@ function PhaserCanvas() {
     return () => {
       if (game) {
         game.destroy(true);
+        worker.terminate();
       }
     };
-  }, []);
+  }, [reiniciar]);
 
-  return <div id="phaser-container" style={stylesContent} />;
+  return <>
+     <button id='reiniciar' onClick={() => {
+        setReiniciar(!reiniciar);
+        worker.postMessage({ action: 'reset' });
+      }}>
+        Reiniciar
+      </button>
+      <div className="contador">Balas restantes: <div className='balas'>
+        {balasRestantes}</div></div>
+      <div id="phaser-container" style={stylesContent} />
+  </>;
 }
 
 export default PhaserCanvas;
