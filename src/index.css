@@ -5,13 +5,17 @@ body{
   justify-content: center;
   align-items: center;
   overflow-x: hidden;
-  background-color: rgba(50, 50, 50, 0.2);
+  background-color: rgba(1, 9, 22, 0.9);
+  color: rgba(154, 202, 214, 1);
 }
 
 #phaser-container{
-  border: 4px solid rgba(50, 50, 50, 0.4);
+  border: 2px solid rgba(0, 186, 201, 0.4);
   cursor : url('/src/assets/mira.svg'), auto;
   
+}
+#phaser-container:hover{
+  border: 2px solid rgba(0, 186, 201, 1);
 }
 
 @font-face {
@@ -27,7 +31,7 @@ body{
   font-size: large;
 }
   .balas{
-    border: 1px solid black;
+    border: 1px solid rgba(0, 186, 201, 1);
     text-align: center;
   }
   .balas:hover{
@@ -42,8 +46,10 @@ body{
   width: 110px;
   cursor: pointer;
   padding: 20px;
-  border: 2px solid rgba(50, 50, 50, 1);
+  border: 2px solid rgba(0, 186, 201, 1);
+  background-color: rgba(154, 202, 214, 1);
   transition: 0.1ms ease;
+  color: rgba(1, 9, 22, 0.9);
 }
 #reiniciar:hover{
   background-color: rgba(50, 50, 50, 0.2);

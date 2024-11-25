@@ -1,11 +1,19 @@
 // bulletWorker.js
-let bulletsLeft = 6;
+let balas = 10;
+let bulletsLeft = balas;
 
 self.onmessage = function (event) {
+  //console.log(`balas restantes  : ${bulletsLeft}`);
   if (event.data.action === "shoot") {
-    bulletsLeft -= 1;
+    if (bulletsLeft <= 0) {
+      bulletsLeft = 0;
+    } else {
+      bulletsLeft -= 1;
+    }
   } else if (event.data.action === "reset") {
-    bulletsLeft = 7;
+    bulletsLeft = balas;
+  } else if (event.data.action === "wait") {
+    console.log("hilo bullet");
   }
 
   // Enviar el número de balas restantes al hilo principal
