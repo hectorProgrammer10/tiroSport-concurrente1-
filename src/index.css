@@ -56,3 +56,8 @@ body{
   color: white;
   border: 2px solid white;
 }
+#images-canvas{
+  position: absolute;
+  margin-top: -505px;
+  margin-left: 10px;
+}

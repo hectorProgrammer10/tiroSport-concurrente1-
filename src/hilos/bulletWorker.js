@@ -1,5 +1,5 @@
 // bulletWorker.js
-let balas = 10;
+let balas = 6;
 let bulletsLeft = balas;
 
 self.onmessage = function (event) {

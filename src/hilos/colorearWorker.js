@@ -1,6 +1,7 @@
 let estado;
 let oid;
 let osos = 6;
+let arrayOsoTumbados = [];
 
 self.onmessage = function (event) {
   estado = event.data.estado;
@@ -8,8 +9,10 @@ self.onmessage = function (event) {
   if (event.data.estado == "tumbado") {
     colorear();
   }
+  console.log(arrayOsoTumbados);
+  self.postMessage(arrayOsoTumbados);
 };
 
 function colorear() {
-  console.log(`${estado}, id : ${oid}`);
+  arrayOsoTumbados.push(oid);
 }

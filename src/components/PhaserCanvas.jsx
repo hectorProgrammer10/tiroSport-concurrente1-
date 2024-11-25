@@ -1,17 +1,31 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
 import Phaser from 'phaser';
-import BulletWorker from './bulletWorker.js?worker';
-import anguloWorker from './anguloWorker.js?worker';
-import colorear from './colorearWorker.js?worker';
+import BulletWorker from '../hilos/bulletWorker.js?worker';
+import anguloWorker from '../hilos/anguloWorker.js?worker';
+import colorear from '../hilos/colorearWorker.js?worker';
 
 let colores = ['55334C', '003F58', '007A89', '00BAC9', '9ACAD6'];
-
+const styleImg ={
+  height: '89px',
+  width: '89px',
+} 
+const imageUrls = [
+  '/oso.svg',
+  '/oso2.svg',
+  '/oso3.svg',
+  '/oso4.svg',
+  '/oso5.svg',
+  '/oso6.svg',
+];
 
 function PhaserCanvas() {
+  // const [listaOsos, setListaOsos] = useState([]);
+
   const stylesContent = {};
   const [reiniciar, setReiniciar] = useState(false);
   const [balasRestantes, setBalasRestantes] = useState();
+  const [arrayDeOsosAImprimir, setArrayDeOsosAImprimir] = useState([]);
  
   // const [angulo, setAngulo] = useState(90);
   let pistola;
@@ -21,14 +35,13 @@ function PhaserCanvas() {
   let colorearW;
   let pistolaVacia = false;
 
-  useEffect(() => {
-
-  })
-
+  
   useEffect(() => {
     setReiniciar(false);
+    setArrayDeOsosAImprimir([]);
     worker = new BulletWorker();
     ww= new anguloWorker();
+    colorearW = new colorear();
 
     // Recibir el número de balas desde el Web Worker
     worker.onmessage = function (event) {
@@ -51,16 +64,13 @@ function PhaserCanvas() {
     ww.onmessage = function(event){
       pistola.setAngle(event.data); 
     }
-
-    colorearW = new colorear();
-      colorearW.onmessage = function(event){
-        try {
-          console.log(event.data)
-        } catch (error) {
-          console.log(error)
-        }
-      }
+   
     
+    colorearW.onmessage = function(event){
+      setArrayDeOsosAImprimir(event.data)
+
+    }
+
     // Configuración del juego Phaser
     const config = {
       type: Phaser.AUTO,
@@ -88,15 +98,15 @@ function PhaserCanvas() {
     function preload() {
       worker.postMessage({ action: 'wait' });
       // Cargar las imágenes que vas a utilizar
-      this.load.image('oso', '/oso.svg'); //blanco
-      this.load.image('oso2', '/oso2.svg'); //    
-      this.load.image('oso3', '/oso3.svg'); // 
-      this.load.image('oso4', '/oso4.svg'); // 
-      this.load.image('oso5', '/oso5.svg'); // 
-      this.load.image('oso6', '/oso6.svg'); // amarillo
+      this.load.image('oso', imageUrls[0]); //blanco
+      this.load.image('oso2', imageUrls[1]); //    
+      this.load.image('oso3', imageUrls[2]); // 
+      this.load.image('oso4', imageUrls[3]); // 
+      this.load.image('oso5', imageUrls[4]); // 
+      this.load.image('oso6', imageUrls[5]); // amarillo
       this.load.image('pistola', '/pistola.svg'); //
       this.load.image('pistolaN', '/pistolaN.svg'); //
-    }
+    }   
 
     function create() {
       
@@ -158,7 +168,7 @@ function PhaserCanvas() {
           pistola.setCollideWorldBounds(true);
           pistola.angle += 90;
           handleOsoClick(oso);
-          colorearW.postMessage({estado : 'tumbado', oid: 1})
+          colorearW.postMessage({estado : 'tumbado', oid: 0})
         }
 
         
@@ -170,7 +180,7 @@ function PhaserCanvas() {
         graphics4.fillRect(0, 320, 1200, 190);
         this.add.text(510, 400, 'Tiro Sport', { fontFamily: 'CustomFont', fontSize: '50px', fill: 'rgba(0,0,0,0.6)' });
         handleOsoClick(oso2);
-        colorearW.postMessage({estado : 'tumbado', oid: 2})
+        colorearW.postMessage({estado : 'tumbado', oid: 1})
         }
         
       });
@@ -178,7 +188,7 @@ function PhaserCanvas() {
         if(!pistolaVacia){
           this.add.text(510, 400, 'Tiro Sport', { fontFamily: 'CustomFont', fontSize: '50px', fill: `#${colores[3]}` }); //prendiente
           handleOsoClick(oso3);
-          colorearW.postMessage({estado : 'tumbado', oid: 3})
+          colorearW.postMessage({estado : 'tumbado', oid: 2})
         }
         
 
@@ -195,7 +205,7 @@ function PhaserCanvas() {
         graphics.fillStyle(`0x${colores[0]}`, 1);
         graphics.fillRect(0, 510, 1200, 4);
         handleOsoClick(oso4);
-        colorearW.postMessage({estado : 'tumbado', oid: 4})
+        colorearW.postMessage({estado : 'tumbado', oid: 3})
         }
 
         
@@ -204,7 +214,7 @@ function PhaserCanvas() {
         if(!pistolaVacia){
           this.cameras.main.setBackgroundColor(`#${colores[1]}`);
           handleOsoClick(oso5);
-          colorearW.postMessage({estado : 'tumbado', oid: 5})
+          colorearW.postMessage({estado : 'tumbado', oid: 4})
         }
 
         
@@ -220,7 +230,7 @@ function PhaserCanvas() {
         pistola.setCollideWorldBounds(true);
         pistola.angle += 90;
         handleOsoClick(oso6);
-        colorearW.postMessage({estado : 'tumbado', oid: 6})
+        colorearW.postMessage({estado : 'tumbado', oid: 5})
         }
 
         
@@ -329,6 +339,11 @@ function PhaserCanvas() {
       <div className="contador">Balas restantes: <div className='balas'>
         {balasRestantes}</div></div>
       <div id="phaser-container" style={stylesContent} />
+      <div id='images-canvas'> {imageUrls.map((url, index) => 
+          arrayDeOsosAImprimir.includes(index) && (
+            <img key={index} src={url} alt={`Image ${index + 1}`} style={styleImg} />
+          )
+        )}</div>
   </>;
 }
 
